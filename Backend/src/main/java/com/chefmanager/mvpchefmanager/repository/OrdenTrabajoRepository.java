@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface OrdenTrabajoRepository extends JpaRepository<OrdenTrabajo, Long> {
-    Page<OrdenTrabajo> findByNombreProductoContainingIgnoreCaseOrDistribuidorContainingIgnoreCase(
+
+    Page<OrdenTrabajo> findByNombreProductoContainingOrDistribuidorContaining(
             String nombreProducto, String distribuidor, Pageable pageable);
 }

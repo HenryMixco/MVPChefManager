@@ -1,70 +1,66 @@
 package com.chefmanager.mvpchefmanager.service;
 
-import com.chefmanager.mvpchefmanager.dto.OrdenTrabajoDTO;
 import com.chefmanager.mvpchefmanager.model.OrdenTrabajo;
 import com.chefmanager.mvpchefmanager.repository.OrdenTrabajoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
 
 @Service
-@Transactional
 public class OrdenTrabajoService {
 
     @Autowired
     private OrdenTrabajoRepository ordenTrabajoRepository;
 
-    public Page<OrdenTrabajo> getAllOrdenes(int page, int size, String search) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
-
-        if (search != null && !search.trim().isEmpty()) {
-            return ordenTrabajoRepository.findByNombreProductoContainingIgnoreCaseOrDistribuidorContainingIgnoreCase(
-                    search, search, pageable);
-        }
-
+    public Page<OrdenTrabajo> getAllOrdenesTrabajo(Pageable pageable) {
         return ordenTrabajoRepository.findAll(pageable);
     }
 
-    public OrdenTrabajo getOrdenById(Long id) {
-        return ordenTrabajoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Orden de trabajo no encontrada con id: " + id));
+    public List<OrdenTrabajo> getAllOrdenesTrabajo() {
+        return ordenTrabajoRepository.findAll();
     }
 
-    public OrdenTrabajo createOrden(OrdenTrabajoDTO ordenDTO) {
-        OrdenTrabajo orden = new OrdenTrabajo();
-        orden.setNombreProducto(ordenDTO.getNombreProducto());
-        orden.setCantidad(ordenDTO.getCantidad());
-        orden.setDistribuidor(ordenDTO.getDistribuidor());
-        orden.setPrecioTotal(ordenDTO.getPrecioTotal());
-        orden.setFechaCompra(ordenDTO.getFechaCompra() != null ? ordenDTO.getFechaCompra() : LocalDate.now());
-
-        return ordenTrabajoRepository.save(orden);
+    public Optional<OrdenTrabajo> getOrdenTrabajoById(Long id) {
+        return ordenTrabajoRepository.findById(id);
     }
 
-    public OrdenTrabajo updateOrden(Long id, OrdenTrabajoDTO ordenDTO) {
-        OrdenTrabajo orden = getOrdenById(id);
+    @Transactional
+    public OrdenTrabajo createOrdenTrabajo(OrdenTrabajo ordenTrabajo) {
+        return ordenTrabajoRepository.save(ordenTrabajo);
+    }
 
-        orden.setNombreProducto(ordenDTO.getNombreProducto());
-        orden.setCantidad(ordenDTO.getCantidad());
-        orden.setDistribuidor(ordenDTO.getDistribuidor());
-        orden.setPrecioTotal(ordenDTO.getPrecioTotal());
-        if (ordenDTO.getFechaCompra() != null) {
-            orden.setFechaCompra(ordenDTO.getFechaCompra());
+    @Transactional
+    public OrdenTrabajo updateOrdenTrabajo(Long id, OrdenTrabajo ordenTrabajoDetails) {
+        OrdenTrabajo ordenTrabajo = ordenTrabajoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Orden de trabajo no encontrada con id: " + id));
+
+        ordenTrabajo.setNombreProducto(ordenTrabajoDetails.getNombreProducto());
+        ordenTrabajo.setCantidad(ordenTrabajoDetails.getCantidad());
+        ordenTrabajo.setDistribuidor(ordenTrabajoDetails.getDistribuidor());
+        ordenTrabajo.setPrecioTotal(ordenTrabajoDetails.getPrecioTotal());
+
+        if (ordenTrabajoDetails.getFechaCompra() != null) {
+            ordenTrabajo.setFechaCompra(ordenTrabajoDetails.getFechaCompra());
         }
 
-        return ordenTrabajoRepository.save(orden);
+        return ordenTrabajoRepository.save(ordenTrabajo);
     }
 
-    public void deleteOrden(Long id) {
+    @Transactional
+    public void deleteOrdenTrabajo(Long id) {
         if (!ordenTrabajoRepository.existsById(id)) {
-            throw new RuntimeException("Orden de trabajo no encontrada con id: " + id);
+            throw new IllegalArgumentException("Orden de trabajo no encontrada con id: " + id);
         }
         ordenTrabajoRepository.deleteById(id);
+    }
+
+    public Page<OrdenTrabajo> searchOrdenesTrabajo(String search, Pageable pageable) {
+        return ordenTrabajoRepository.findByNombreProductoContainingOrDistribuidorContaining(
+                search, search, pageable);
     }
 }
